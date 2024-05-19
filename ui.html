@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Socket.IO Chat</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    #chat { max-width: 600px; margin: 0 auto; }
+    #messages { border: 1px solid #ccc; padding: 10px; list-style-type: none; height: 300px; overflow-y: scroll; }
+    #message-form { display: flex; }
+    #message-form input { flex: 1; padding: 10px; }
+    #message-form button { padding: 10px; }
+  </style>
+</head>
+<body>
+  <div id="chat">
+    <h1>Socket.IO Chat</h1>
+    <ul id="messages"></ul>
+    <form id="message-form">
+      <input id="message-input" autocomplete="off" placeholder="Type a message..." /><button>Send</button>
+    </form>
+  </div>
+
+  <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+  <script>
+    const socket = io('http://localhost:3000', {
+      query: {
+        userId: '66420d539ada754f3ec91f65' // Thay 'user1' bằng userId của bạn
+      }
+    });
+
+    // Tham gia vào phòng trò chuyện
+    const conversationId = '66450d1bb69f484930428aa2'; // Thay bằng conversationId thực tế
+    socket.emit('join conversation', conversationId);
+
+    const messages = document.getElementById('messages');
+    const form = document.getElementById('message-form');
+    const input = document.getElementById('message-input');
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (input.value) {
+        const msg = {
+          conversationId: conversationId,
+          senderId: '66420d539ada754f3ec91f65', // Thay bằng userId thực tế
+          text: input.value,
+          files: [], // Nếu có file
+        };
+        socket.emit('chat message', msg);
+        input.value = '';
+      }
+    });
+
+    socket.on('chat message', (msg) => {
+      const item = document.createElement('li');
+      item.textContent = msg.text;
+      messages.appendChild(item);
+      window.scrollTo(0, document.body.scrollHeight);
+    });
+
+    socket.on('getOnlineUsers', (users) => {
+      console.log('Online users:', users);
+    });
+
+    socket.on('connect', () => {
+      console.log('Connected to server');
+    });
+
+    socket.on('disconnect', () => {
+      console.log('Disconnected from server');
+    });
+  </script>
+</body>
+</html>
